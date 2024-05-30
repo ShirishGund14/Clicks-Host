@@ -2,7 +2,7 @@ const userModel = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mongoose = require('mongoose');
-
+const cloudinary = require('cloudinary').v2;
 
 
 // Register user
@@ -10,7 +10,7 @@ exports.registerController = async (req, res) => {
   try {
     // console.log('req bost',req.body);
     const { username, email, password } = req.body;
-    const avatar=req.file.filename;
+    // const avatar=req.file.filename;
     // console.log('req.file',req.file);
     // console.log('avatar',avatar);
    
@@ -21,6 +21,8 @@ exports.registerController = async (req, res) => {
         message: "Please fill in all fields",
       });
     }
+
+
    
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
@@ -30,12 +32,13 @@ exports.registerController = async (req, res) => {
       });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
+    const result = await cloudinary.uploader.upload(req.file.path);
    
     const user = new userModel({
       username, 
       email, 
       password: hashedPassword,
-      profilePicture:avatar,
+      profilePicture:result.secure_url,
       
     });
     await user.save();
@@ -154,42 +157,44 @@ exports.userInfoController = async (req, res) => {
 
 
 
-exports.UpdateAvatar = async (req, res) => {
-  try {
-    const userId = req.body.userId; // Assuming userId is provided in the request body
-    const avatar = req.file.filename; // Assuming the uploaded avatar file is available in req.file
-    const{email,username}=req.body;
+// exports.UpdateAvatar = async (req, res) => {
+//   try {
+//     const userId = req.body.userId; // Assuming userId is provided in the request body
+    
 
-    console.log('userId',userId);
-    console.log('avatar',avatar);
+//     // console.log('userId',userId);
+//     // console.log('avatar',avatar);
 
-    // Check if the user exists
-    const user = await userModel.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+//     // Check if the user exists
+//     const user = await userModel.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "User not found",
+//       });
+//     }
 
-    // Update user's avatar
-    user.profilePicture = avatar;
-    await user.save();
+//     // Update user's avatar
+//     console.log('File path',req.file.path);
+//     const result = await cloudinary.uploader.upload(req.file.path);
 
-    return res.status(200).json({
-      success: true,
-      message: "Avatar updated successfully",
-      user: user, // Optionally, you can send the updated user object back to the client
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: "Error updating avatar",
-      error: error.message,
-    });
-  }
-};
+//     user.profilePicture = result.secure_url;
+//     await user.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Avatar updated successfully",
+//       user: user, // Optionally, you can send the updated user object back to the client
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Error updating avatar",
+//       error: error.message,
+//     });
+//   }
+// };
 
 
 exports.updateUserInfoController = async (req, res) => {
@@ -199,7 +204,7 @@ exports.updateUserInfoController = async (req, res) => {
       let profilePicture;
 
       if (req.file) {
-          profilePicture = req.file.filename; // Assuming the file is handled and uploaded properly
+          profilePicture = req.file.path; // Assuming the file is handled and uploaded properly
       }
 
       // Check if the user exists
@@ -211,11 +216,12 @@ exports.updateUserInfoController = async (req, res) => {
           });
       }
 
+      const result = await cloudinary.uploader.upload(req.file.path);
       // Prepare the update object
       const updateData = {};
       if (name) updateData.username = name;
       if (email) updateData.email = email;
-      if (profilePicture) updateData.profilePicture = profilePicture;
+      if (profilePicture) updateData.profilePicture = result.secure_url;
 
       // Update user details
       const updatedUser = await userModel.findByIdAndUpdate(

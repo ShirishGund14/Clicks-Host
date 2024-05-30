@@ -3,7 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const path=require('path');
-
+const cloudinary = require('cloudinary').v2; // Import Cloudinary module
 
 dotenv.config();
 
@@ -17,6 +17,12 @@ connectDB();
 
 const app = express();
 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 //middelwares
 app.use(cors());
 app.use(express.urlencoded({extended:true}));
@@ -24,8 +30,8 @@ app.use(express.json());
 
 
 //routes
-app.use('/uploads', express.static(path.join(__dirname, './uploads')));
-console.log(path.join(__dirname, './uploads'));
+// app.use('/uploads', express.static(path.join(__dirname, './uploads')));
+// console.log('uploadfolderPath',path.join(__dirname, './uploads'));
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/posts", imageRoutes);
 

@@ -1,6 +1,7 @@
 const imageModel = require("../models/imageModel");
 const userModel = require("../models/userModel");
 const commentModel = require("../models/commentModel");
+const cloudinary = require('cloudinary').v2;
 
 
 exports.UploadPostController=async(req,res)=>{
@@ -10,8 +11,8 @@ exports.UploadPostController=async(req,res)=>{
     
         const id=req.body.userId;
         const existingUser=await userModel.findOne({_id:id});
-        const post=req.file.filename;
-
+        
+        const result = await cloudinary.uploader.upload(req.file.path);
         if(!existingUser){
             return res.send({
                 success: false,
@@ -23,7 +24,7 @@ exports.UploadPostController=async(req,res)=>{
         const newPost=new imageModel({
             user:existingUser,
             description,
-            url:post,
+            url:result.secure_url,
             caption,
         })
 
@@ -171,6 +172,7 @@ exports.updatePostController=async(req,res)=>{
     }
 
 
+    // to save post in user account
 exports.SavePostController = async (req, res) => {
     try {
         const userId = req.body.userId; // Extract user ID from the authenticated user
