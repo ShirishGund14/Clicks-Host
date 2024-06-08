@@ -36,7 +36,7 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/posts", imageRoutes);
 
 
-DEPLOY
+// DEPLOY
 app.use(express.static(path.join(__dirname,"./client/build")));
 app.get('*',function(req,res){
   res.sendFile(path.join(__dirname,"./client/build/index.html"));
