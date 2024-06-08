@@ -46,10 +46,10 @@ exports.UploadPostController=async(req,res)=>{
       }
 }
 
-
+// Fetch all posts from the database
 exports.getAllPostsController = async (req, res) => {
     try {
-        // Fetch all posts from the database
+        
         const allPosts = await imageModel.find({});
         const userId=req.body.userId;
 
@@ -79,10 +79,75 @@ exports.getAllPostsController = async (req, res) => {
     }
 };
 
-exports.GetPostController = async (req, res) => {
+exports.SliderImages = async (req, res) => {
     try {
-        // Fetch all posts from the database
-        const postId = req.params.id;
+        
+        const allPosts = await imageModel.find({});
+        
+        // for (let i = 0; i < allPosts.length; i++) {
+        //     const userId = allPosts[i].user;
+        //     const user = await userModel.findById(userId);
+        //     allPosts[i].username = user.username;
+        // }
+        
+
+            
+        return res.status(200).json({
+            success: true,
+            message: "All Posts Retrieved Successfully",
+            posts: allPosts,
+        });
+    } catch (error) {
+        console.error("Error in getAllPostsController:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error in retrieving posts",
+            error: error.message
+        });
+    }
+};
+
+
+exports.TopImages = async (req, res) => {
+    try {
+        
+        const mostLikedImages = await imageModel.aggregate([
+            {
+              $project: {
+                user: 1,
+                url: 1,
+                caption: 1,
+                description: 1,
+                likes: 1,
+                comments: 1,
+                createdAt: 1,
+                likesCount: { $size: "$likes" } // calculate the number of likes
+              }
+            },
+            {
+              $sort: { likesCount: -1 } // sort by the number of likes in descending order
+            }
+          ]);
+
+        return res.status(200).json({
+            success: true,
+            message: "All Posts Retrieved Successfully",
+            posts: mostLikedImages,
+        });
+    } catch (error) {
+        console.error("Error in getAllPostsController:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error in retrieving posts",
+            error: error.message
+        });
+    }
+};
+
+// Fetch single post from the database
+       
+exports.GetPostController = async (req, res) => {
+    try { const postId = req.params.id;
         // console.log('PostID',postId);
         const post=await imageModel.findById({_id:postId});
         const existingUser=await userModel.findById({_id:post.user}).select('-password -savedPosts -createdAt -__v');;
@@ -175,8 +240,8 @@ exports.updatePostController=async(req,res)=>{
     // to save post in user account
 exports.SavePostController = async (req, res) => {
     try {
-        const userId = req.body.userId; // Extract user ID from the authenticated user
-        const postId = req.params.id; // Extract post ID from request parameters
+        const userId = req.body.userId; 
+        const postId = req.params.id; // Extract post ID 
 
         // Check if the user exists
         const user = await userModel.findById(userId);
@@ -225,10 +290,10 @@ exports.SavePostController = async (req, res) => {
 
 exports.UnSavePostController = async (req, res) => {
     try {
-        const userId = req.body.userId; // Extract user ID from the authenticated user
-        const postId = req.params.id; // Extract post ID from request parameters
+        const userId = req.body.userId; 
+        const postId = req.params.id; 
 
-        // Check if the user exists
+      
         const user = await userModel.findById(userId);
         if (!user) {
             return res.status(404).json({

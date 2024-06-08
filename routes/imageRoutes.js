@@ -11,7 +11,9 @@ const{UploadPostController,getAllPostsController,
     GetAllCommentsOfPost,
     GetMyPostsController,
     GetAllSavedPostsController,
-    UpdateCommentOfPost
+    UpdateCommentOfPost,
+    SliderImages,
+    TopImages
 
 }=require('../controllers/imageController')
 
@@ -47,8 +49,13 @@ const router = express.Router();
 
 
 router.get("/feed",authMiddleware, getAllPostsController);
+router.get("/welcome", SliderImages);
+router.get("/Topclicks", TopImages);
+
+
 
 router.post("/upload",upload.single('post') ,authMiddleware,UploadPostController);
+
 router.delete("/delete/:id",authMiddleware, DeletePostController);
 router.put("/update/:id",authMiddleware, updatePostController);
 router.post("/save/:id",authMiddleware, SavePostController);
